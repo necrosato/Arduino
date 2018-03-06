@@ -1,0 +1,21 @@
+pip install esptool
+esptool.py --port /dev/ttyUSB0 erase_flash
+
+esptool.py --port /dev/ttyUSB0 --baud 115200 write_flash --flash_size=detect 0 <image>
+#OR
+#esptool.py --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect -fm dio 0 <image>
+
+#For a serial prompt:
+#screen /dev/ttyUSB0 115200
+
+#for webREPL setup:
+# get serial console:
+# import webrepl_setup
+
+#to run a script
+#ampy --port /dev/ttyUSB run <local_path>
+
+#for uploading and getting scripts off the board
+#ampy --port /dev/ttyUSB0 put <local_path> /<mp_path>
+#ampy --port /dev/ttyUSB0 get /<mp_path> <local_path> 
+
