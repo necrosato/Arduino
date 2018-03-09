@@ -1,5 +1,5 @@
 #include <ESP8266WiFi.h>
-#include "pins_arduino.h"
+//#include "pins_arduino.h"
 //////////////////////
 // WiFi Definitions //
 //////////////////////
