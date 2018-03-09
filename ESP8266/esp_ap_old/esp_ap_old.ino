@@ -3,7 +3,7 @@
 //////////////////////
 // WiFi Definitions //
 //////////////////////
-const char WiFiAPPSK[] = "unneuddo";
+const char WiFiAPPSK[] = "super_secure";
 const char AP_NAME[] = "esp_ap";
 
 /////////////////////
