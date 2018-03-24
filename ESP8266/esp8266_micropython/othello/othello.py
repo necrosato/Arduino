@@ -1,4 +1,5 @@
 import socket
+import gc
 
 class OthelloServer:
 
@@ -64,6 +65,7 @@ class OthelloServer:
             cl.write(t2_foot)
             cl.write(html_foot)
             cl.close()
+            gc.collect()
 
 class Othello:
     empty = -1
