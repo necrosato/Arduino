@@ -43,13 +43,13 @@ class OthelloServer:
             for i in range(8):
                 row = '<tr>'
                 for j in range(8):
-                    row += '<td><form name="'+str(i)+str(j)+'" action="/maketurn'+str(i)+str(j)+'"><button type=submit">'
+                    row += '<td><form name="'+str(i)+str(j)+'" action="/maketurn'+str(i)+str(j)+'"><button type=submit" style="background-color: '
                     if (game.board[i][j] == game.black):
-                        row += ' b '
+                        row += '#555555;"> b '
                     elif (game.board[i][j] == game.white):
-                        row += ' w '
+                        row += '#FFFFFF;"> w '
                     else:
-                        row += ' _ '
+                        row += '#e7e7e7;"> _ '
                     row += '</button></form></td>'
                 row += '</tr>\n'
                 rows.append(row)
