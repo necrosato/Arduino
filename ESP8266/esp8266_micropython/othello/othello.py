@@ -1,3 +1,69 @@
+import socket
+
+class OthelloServer:
+
+    def __init__(self, game):
+        html_head = """<!DOCTYPE html>
+        <html>
+            <head> <title>ESP8266 Micropython Othello</title> </head>
+            <body> <h1>ESP8266 Micropython Othello</h1>
+        """
+        t2_head = '<table border="1">'
+        t2_foot = '</table>'
+        html_foot = """
+            </body>
+        </html>
+        """
+
+        addr = socket.getaddrinfo('0.0.0.0', 80)[0][-1]
+
+        s = socket.socket()
+        s.bind(addr)
+        s.listen(1)
+
+        print('listening on', addr)
+
+        while True:
+            cl, addr = s.accept()
+            print('client connected from', addr)
+
+            cl_file = cl.makefile('rwb', 0)
+            while True:
+                line = cl_file.readline()
+                print(str(line))
+                if not line or line == b'\r\n':
+                    break
+                elif line[0:13] == b'GET /maketurn':
+                    ni = int(line[13]) - 48
+                    nj = int(line[14]) - 48
+                    if ni >= 0 and ni < 8 and nj >= 0 and nj < 8:
+                        game.makeTurnWeb(ni, nj)
+
+            rows = []
+            for i in range(8):
+                row = '<tr>'
+                for j in range(8):
+                    row += '<td><form name="'+str(i)+str(j)+'" action="/maketurn'+str(i)+str(j)+'"><button type=submit">'
+                    if (game.board[i][j] == game.black):
+                        row += ' b '
+                    elif (game.board[i][j] == game.white):
+                        row += ' w '
+                    else:
+                        row += ' _ '
+                    row += '</button></form></td>'
+                row += '</tr>\n'
+                rows.append(row)
+
+            t1 = '<tr><td>' + str(game.numBlack) + '</td><td>' + str(game.numWhite) + '</td><td>' + ('Black' if game.current == game.black else 'White') + '</td></tr>\n'
+            t1 = '<table border="1"> <tr><th>Black Score: </th><th>White Score: </th><th>Current Player: </th></tr>%s</table>' % (t1)
+            cl.write(html_head)
+            cl.write(t1)
+            cl.write(t2_head)
+            for i in range(8):
+                cl.write(rows[i])
+            cl.write(t2_foot)
+            cl.write(html_foot)
+            cl.close()
 
 class Othello:
     empty = -1
@@ -18,6 +84,8 @@ class Othello:
         self.board[startIndex+1][startIndex] = self.black
         self.board[startIndex+1][startIndex+1] = self.white
         self.promptTurn(self.current, self.size)
+        self.numBlack = 2;
+        self.numWhite = 2;
 
     def hasTurn(self, p):
         for i in range(self.size):
@@ -122,28 +190,28 @@ class Othello:
         return valid
 
     def checkWin(self): 
-        numBlack = 0
-        numWhite = 0
+        self.numBlack = 0
+        self.numWhite = 0
         winner = -2
         for i in range(self.size):
             for j in range(self.size):
                 if self.board[i][j] == self.empty:
                     winner = self.empty
                 elif self.board[i][j] == self.black:
-                    numBlack+=1
+                    self.numBlack+=1
                 elif self.board[i][j] == self.white:
-                    numWhite+=1
-        print("Player 1: " + str(numBlack) + "    Player 2: " + str(numWhite))
-        if (numBlack == 0):
+                    self.numWhite+=1
+        print("Player 1: " + str(self.numBlack) + "    Player 2: " + str(self.numWhite))
+        if (self.numBlack == 0):
             winner = self.white
-        elif (numWhite == 0):
+        elif (self.numWhite == 0):
             winner = self.black
         
         if (winner == self.empty):
             return winner
-        elif (numBlack > numWhite):
+        elif (self.numBlack > self.numWhite):
             winner = self.black
-        elif (numWhite > numBlack):
+        elif (self.numWhite > self.numBlack):
             winner = self.white
         print("Player " + str(winner + 1) + " won!")
         return winner
@@ -169,7 +237,6 @@ class Othello:
                     print(" .", end='')
             print()
 
-
     def makeTurn(self, i, j):
         if (self.checkWin() == -1):
             if not self.checkTurn(self.current, i, j):
@@ -189,5 +256,21 @@ class Othello:
 
         else:
             self.printBoard()
+        self.checkWin()
 
-        
+    def makeTurnWeb(self, i, j):
+        if (self.checkWin() == -1):
+            if not self.checkTurn(self.current, i, j):
+                return -3
+            if self.current == self.white:
+                self.current = self.black
+            else:
+                self.current = self.white
+            if not self.hasTurn(self.current):
+                if self.current == self.white:
+                    self.current = self.black
+                else:
+                    self.current = self.white
+        return self.checkWin()
+
+
