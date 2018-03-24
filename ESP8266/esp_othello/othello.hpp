@@ -1,22 +1,18 @@
-#ifndef __REVERSI_HPP
-#define __REVERSI_HPP
+#ifndef __OTHELLO_HPP
+#define __OTHELLO_HPP
 
 #include <string>
 
-typedef enum {
-    OPEN = -1,
-    BLACK = 0,
-    WHITE = 1
-} Player;
-
-namespace reversi {
-
-int getInt(int high, int low);
-
-class Board {
+class Othello {
 public:
-    Board(int size);
-    ~Board();
+    typedef enum {
+        OPEN = -1,
+        BLACK = 0,
+        WHITE = 1
+    } Player;
+
+    Othello(int size);
+    ~Othello();
     int getSize();
     int **getGrid();
     void setGrid(int i, int j, Player p);
@@ -33,6 +29,4 @@ private:
     bool checkTurn(Player p, int i, int j);
 };
 
-};
-
-#endif /* __REVERSI_HPP */
+#endif /* __OTHELLO_HPP */

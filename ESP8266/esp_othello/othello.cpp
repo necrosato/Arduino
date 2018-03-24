@@ -2,25 +2,12 @@
 #include <iomanip>
 #include <limits>
 
-#include "reversi.hpp"
+#include "othello.hpp"
 
 using std::cin;
 using std::cout;
 
-namespace reversi {
-
-int getInt(int high, int low) {
-    int num = -1;
-    while (num < low || num > high) {
-        while(!(cin >> num)) {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        }
-    }
-    return num;
-}
-
-Board::Board(int size) {
+Othello::Othello(int size) {
     this->size = size;
     this->grid = new int *[size];
     for (int i = 0; i < size; i++) {
@@ -35,25 +22,25 @@ Board::Board(int size) {
     this->grid[startIndex + 1][startIndex + 1] = WHITE;
 }
 
-Board::~Board() {
+Othello::~Othello() {
     for (int i = 0; i < this->size; i++)
         delete[] this->grid[i];
     delete[] this->grid;
 }
 
-int Board::getSize() {
+int Othello::getSize() {
     return this->size;
 }
 
-int** Board::getGrid() {
+int** Othello::getGrid() {
     return this->grid;
 }
 
-void Board::setGrid(int i, int j, Player p) {
+void Othello::setGrid(int i, int j, Player p) {
     this->grid[i][j] = p;
 }
 
-bool Board::hasTurn(Player p) {
+bool Othello::hasTurn(Player p) {
     for (int i = 0; i < this->size; i++)
         for (int j = 0; j < this->size; j++)
             for (int k = 0; k < 8; k++)
@@ -63,9 +50,9 @@ bool Board::hasTurn(Player p) {
     return false;
 }
 
-void Board::promptTurn(Player p, int high) {
+void Othello::promptTurn(Player p, int high) {
     int row, col;
-    printBoard();
+    printOthello();
     cout << "Player " << p + 1 << " turn, input 2 numbers (0 - " << high - 1 << ") for row and col: ";
     row = getInt(high - 1, 0);
     col = getInt(high - 1, 0);
@@ -75,7 +62,7 @@ void Board::promptTurn(Player p, int high) {
     }
 }
 
-int Board::checkWin() {
+int Othello::checkWin() {
     int numWhite = 0, numBlack = 0, winner = -2;
     for (int i = 0; i < this->size; i++)
         for (int j = 0; j < this->size; j++) {
@@ -102,7 +89,7 @@ int Board::checkWin() {
     return winner;
 }
 
-void Board::printBoard() {
+void Othello::printOthello() {
     cout << "  ";
     for (int i = 0; i < this->size; i++)
         cout << std::setw(2) << i;
@@ -118,11 +105,11 @@ void Board::printBoard() {
     }
 }
 
-void Board::flip(int i, int j) {
+void Othello::flip(int i, int j) {
     this->grid[i][j] = !(this->grid[i][j]);
 }
 
-bool Board::canFlip(Player p, int i, int j, int d) {
+bool Othello::canFlip(Player p, int i, int j, int d) {
     int iOffset = 0, jOffset = 0, nextI, nextJ;
     switch (d) {
         case 0:
@@ -181,7 +168,7 @@ bool Board::canFlip(Player p, int i, int j, int d) {
     return false;
 }
 
-bool Board::checkCanFlip(Player p, int i, int j, int d) {
+bool Othello::checkCanFlip(Player p, int i, int j, int d) {
     int iOffset = 0, jOffset = 0, nextI, nextJ;
     switch (d) {
         case 0:
@@ -232,7 +219,7 @@ bool Board::checkCanFlip(Player p, int i, int j, int d) {
     return checkCanFlip(p, nextI, nextJ, d);
 }
 
-bool Board::checkTurn(Player p, int i, int j) {
+bool Othello::checkTurn(Player p, int i, int j) {
     bool valid = false;
     if (this->grid[i][j] != OPEN)
         return false;
@@ -240,6 +227,4 @@ bool Board::checkTurn(Player p, int i, int j) {
         if (canFlip(p, i, j, k))
             valid = true;
     return valid;
-}
-
 }
