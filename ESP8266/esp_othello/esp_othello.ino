@@ -78,6 +78,7 @@ void add_t1(struct othello_page *p) {
 
     if ((p->html + p->html_len) != htmlp) {
         Serial.println("T1 ERROR");
+        Serial.println(p->html);
     }
 }
 
@@ -214,7 +215,6 @@ void setupWiFi()
 
     /*
   WiFi.begin(ssid, password);
-  WiFi.config(sta_ip, sta_gateway, subnet);
 
   int linenum = 10, attempt = 1;
   while (WiFi.status() != WL_CONNECTED) {
