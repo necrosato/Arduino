@@ -1,7 +1,8 @@
-#ifndef __OTHELLO_HPP
-#define __OTHELLO_HPP
+#ifndef __OTHELLO__HPP
+#define __OTHELLO__HPP
 
-#include <string>
+#include <ESP8266WiFi.h>
+#include "Print.h"
 
 class Othello {
 public:
@@ -11,22 +12,34 @@ public:
         WHITE = 1
     } Player;
 
-    Othello(int size);
+    Othello(int size, HardwareSerial &s);
     ~Othello();
     int getSize();
     int **getGrid();
-    void setGrid(int i, int j, Player p);
-    bool hasTurn(Player p);
-    void promptTurn(Player p, int high);
+    void setGrid(int i, int j, int p);
+    bool hasTurn(int p);
     int checkWin();
     void printBoard();
+    int makeTurn(int i, int j);
+    void reset();
+
+    int **grid;
+    int numBlack;
+    int numWhite;
+    int current;
+    HardwareSerial &Serial;
 private:
     int size;
-    int **grid;
     void flip(int i, int j);
-    bool canFlip(Player p, int i, int j, int d);
-    bool checkCanFlip(Player p, int i, int j, int d);
-    bool checkTurn(Player p, int i, int j);
+    bool canFlip(int p, int i, int j, int d);
+    bool checkCanFlip(int p, int i, int j, int d);
+    bool checkTurn(int p, int i, int j);
 };
 
-#endif /* __OTHELLO_HPP */
+class OthelloServer {
+public: 
+    OthelloServer(Othello &g) : game(g) {};
+private:
+    Othello &game;
+};
+#endif

@@ -31,6 +31,9 @@ OthelloServer game1srv(game1);
 struct othello_page {
     int html_len;
     char html[8192];
+    char t1[1024];
+    char html_foot[1024];
+
 };
 
 void init_othello_page(struct othello_page *p) {
@@ -40,21 +43,18 @@ Content-Type: text/html\r\n\r\n\
 <!DOCTYPE HTML>\r\n<html>\r\
 <head> <title>ESP8266 Othello</title> </head>\
 <body> <h1>ESP8266 Othello</h1>");
-    p->html_len = strlen(p->html);
-}
 
-void end_othello_page(struct othello_page *p) {
-    char *htmlp = p->html + p->html_len;
-    strcpy(htmlp,
+    strcpy(p->html_foot,
 "</body>\n\
 </html>\n");
+
     p->html_len = strlen(p->html);
 }
 
 void add_t1(struct othello_page *p) {
     char t1p1[] = "<table border=\"1\"> <tr><th>Black Score: </th><th>White Score: </th><th>Current Player: </th></tr>";
-    char nb[4]; itoa(game1.numBlack, nb, 10);
-    char nw[4]; itoa(game1.numWhite, nw, 10);
+    const char *nb = String(game1.numBlack).c_str();
+    const char *nw = String(game1.numWhite).c_str();
     char *htmlp = p->html + p->html_len;
 
     strcpy(htmlp, t1p1);
@@ -73,64 +73,11 @@ void add_t1(struct othello_page *p) {
     htmlp += 5;
     strcpy(htmlp, "</td></tr>\n</table>\n");
     htmlp += 20;
-
     p->html_len = strlen(p->html);
-
     if ((p->html + p->html_len) != htmlp) {
-        Serial.println("T1 ERROR");
-    }
-}
-
-void add_t2(struct othello_page *p) {
-    char *htmlp = p->html + p->html_len;
-    char ib[4];
-    char jb[4];
-
-    strcpy(htmlp, "<table border=\"1\">");
-    htmlp += 18;
-    for (int i = 0; i < 8; i++) {
-        itoa(i, ib, 10);
-        strcpy(htmlp, "<tr>");
-        htmlp += 4;
-        for (int j = 0; j < 8; j++) {
-            itoa(j, jb, 10);
-            strcpy(htmlp, "<td><form name=\"");
-            htmlp += 16;
-            strcpy(htmlp, ib);
-            htmlp++;
-            strcpy(htmlp, jb);
-            strcpy(htmlp, "\" action=\"/maketurn");
-            htmlp += 19;
-            strcpy(htmlp, ib);
-            htmlp++;
-            strcpy(htmlp, jb);
-            htmlp++;
-            strcpy(htmlp, "\"><button type=submit\" style=\"background-color: ");
-            htmlp += 48;
-            if (game1.grid[i][j] == Othello::BLACK) {
-                strcpy(htmlp, "#555555;\"> b ");
-            }
-            else if (game1.grid[i][j] == Othello::WHITE) {
-                strcpy(htmlp, "#FFFFFF;\"> w ");
-            }
-            else {
-                strcpy(htmlp, "#e7e7e7;\"> _ ");
-            }
-            htmlp += 13;
-            strcpy(htmlp, "</button></form></td>");
-            htmlp += 21;
-        }
-        strcpy(htmlp, "</tr>\n");
-        htmlp += 6;
-    }
-    strcpy(htmlp, "</table>");
-    htmlp += 8;
-
-    p->html_len = strlen(p->html);
-
-    if ((p->html + p->html_len) != htmlp) {
-        Serial.println("T2 ERROR");
-        Serial.println(p->html);
+        Serial.println("ERROR");
+        Serial.println(strlen(p->html));
+        Serial.println(strlen(htmlp));
     }
 }
 
@@ -168,29 +115,36 @@ void loop()
     val = 2; // Will print othello board
     br = req[ri+9];
     bc = req[ri+10];
-  } else if ((ri = req.indexOf("/reset")) != -1) {
-    val = 3; // Will print othello board
   }
 
   client.flush();
 
-  if (val == 1 || val == 2) {
-        if (val == 2) {
-            // TODO: Validate this
-            game1.makeTurn((int)br - 48, (int) bc - 48);
-        }
+  init_othello_page(&page);
 
-        init_othello_page(&page);
+  if (val == 1 || val == 2) {
         add_t1(&page);
-        add_t2(&page);
-        end_othello_page(&page);
-  }
-  else if (val == 3) {
-        game1.reset();
-        init_othello_page(&page);
-        add_t1(&page);
-        add_t2(&page);
-        end_othello_page(&page);
+        String rows = "";
+        for (int i = 0; i < 8; i++) {
+            String row = "<tr>";
+            for (int j = 0; j < 8; j++) {
+                row += "<td><form name=\""+String(i)+String(j)+"\" action=\"/maketurn"+String(i)+String(j)+"\"><button type=submit\" style=\"background-color: ";
+                if (game1.grid[i][j] == Othello::BLACK) {
+                    row += "#555555;\"> b ";
+                }
+                else if (game1.grid[i][j] == Othello::WHITE) {
+                    row += "#FFFFFF;\"> w ";
+                }
+                else {
+                    row += "#e7e7e7;\"> _ ";
+                }
+                row += "</button></form></td>";
+            }
+            row += "</tr>\n";
+            rows += row;
+        }
+        String t2_head = "<table border=\"1\">";
+        String t2_foot = "</table>";
+        String t2 = t2_head + rows + t2_foot;
   }
 
   // Send the response to the client

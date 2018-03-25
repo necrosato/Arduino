@@ -1,25 +1,9 @@
-#include <iostream>
-#include <iomanip>
-#include <limits>
-
 #include "othello.hpp"
 
-using std::cin;
-using std::cout;
-
-Othello::Othello(int size) {
+Othello::Othello(int size, HardwareSerial &s) : Serial(s) {
     this->size = size;
     this->grid = new int *[size];
-    for (int i = 0; i < size; i++) {
-        this->grid[i] = new int[size];
-        for (int j = 0; j < size; j++)
-            this->grid[i][j] = OPEN;
-    }
-    int startIndex = (this->size - 1) / 2;
-    this->grid[startIndex][startIndex + 1] = BLACK;
-    this->grid[startIndex][startIndex] = WHITE;
-    this->grid[startIndex + 1][startIndex] = BLACK;
-    this->grid[startIndex + 1][startIndex + 1] = WHITE;
+    this->reset();
 }
 
 Othello::~Othello() {
@@ -36,11 +20,11 @@ int** Othello::getGrid() {
     return this->grid;
 }
 
-void Othello::setGrid(int i, int j, Player p) {
+void Othello::setGrid(int i, int j, int p) {
     this->grid[i][j] = p;
 }
 
-bool Othello::hasTurn(Player p) {
+bool Othello::hasTurn(int p) {
     for (int i = 0; i < this->size; i++)
         for (int j = 0; j < this->size; j++)
             for (int k = 0; k < 8; k++)
@@ -50,20 +34,9 @@ bool Othello::hasTurn(Player p) {
     return false;
 }
 
-void Othello::promptTurn(Player p, int high) {
-    int row, col;
-    printOthello();
-    cout << "Player " << p + 1 << " turn, input 2 numbers (0 - " << high - 1 << ") for row and col: ";
-    row = getInt(high - 1, 0);
-    col = getInt(high - 1, 0);
-    if (!checkTurn(p, row, col)) {
-        cout << "Invalid input: Try Again\n";
-        promptTurn(p, high);
-    }
-}
-
 int Othello::checkWin() {
-    int numWhite = 0, numBlack = 0, winner = -2;
+    numWhite = 0, numBlack = 0;
+    int winner = -2;
     for (int i = 0; i < this->size; i++)
         for (int j = 0; j < this->size; j++) {
             switch (this->grid[i][j]) {
@@ -72,8 +45,10 @@ int Othello::checkWin() {
                 case WHITE: numWhite++; break;
             }
         }
-    cout << "Player 1: " << numBlack << "   Player 2: " << numWhite << "\n";
-    
+    Serial.print("Player 1: ");
+    Serial.print(numBlack);
+    Serial.print(",      Player 2: ");
+    Serial.println(numWhite);
     if (numBlack == 0)
         winner = WHITE;
     else if (numWhite == 0)
@@ -85,23 +60,28 @@ int Othello::checkWin() {
         winner = BLACK;
     else if (numWhite > numBlack)
         winner = WHITE;
-    cout << "Player " << winner + 1 << " won!\n";
+    Serial.print("Player ");
+    Serial.print(winner + 1);
+    Serial.print(" won!\n");
     return winner;
 }
 
-void Othello::printOthello() {
-    cout << "  ";
-    for (int i = 0; i < this->size; i++)
-        cout << std::setw(2) << i;
-    cout << "\n";
+void Othello::printBoard() {
+    Serial.print("  ");
     for (int i = 0; i < this->size; i++) {
-        cout << std::setw(2) << i;
+        Serial.print(' ');
+        Serial.print(i);
+    }
+    Serial.println();
+    for (int i = 0; i < this->size; i++) {
+        Serial.print(' ');
+        Serial.print(i);
         for (int j = 0; j < this->size; j++) {
-            if (this->grid[i][j] == BLACK) cout << " ■";
-            else if (this->grid[i][j] == WHITE) cout << " □";
-            else cout << " .";
+            if (this->grid[i][j] == BLACK) Serial.print(" b");
+            else if (this->grid[i][j] == WHITE) Serial.print(" w");
+            else Serial.print(" .");
         }
-        cout << "\n";
+        Serial.println();
     }
 }
 
@@ -109,7 +89,7 @@ void Othello::flip(int i, int j) {
     this->grid[i][j] = !(this->grid[i][j]);
 }
 
-bool Othello::canFlip(Player p, int i, int j, int d) {
+bool Othello::canFlip(int p, int i, int j, int d) {
     int iOffset = 0, jOffset = 0, nextI, nextJ;
     switch (d) {
         case 0:
@@ -168,7 +148,7 @@ bool Othello::canFlip(Player p, int i, int j, int d) {
     return false;
 }
 
-bool Othello::checkCanFlip(Player p, int i, int j, int d) {
+bool Othello::checkCanFlip(int p, int i, int j, int d) {
     int iOffset = 0, jOffset = 0, nextI, nextJ;
     switch (d) {
         case 0:
@@ -219,7 +199,7 @@ bool Othello::checkCanFlip(Player p, int i, int j, int d) {
     return checkCanFlip(p, nextI, nextJ, d);
 }
 
-bool Othello::checkTurn(Player p, int i, int j) {
+bool Othello::checkTurn(int p, int i, int j) {
     bool valid = false;
     if (this->grid[i][j] != OPEN)
         return false;
@@ -227,4 +207,41 @@ bool Othello::checkTurn(Player p, int i, int j) {
         if (canFlip(p, i, j, k))
             valid = true;
     return valid;
+}
+
+int Othello::makeTurn(int i, int j) {
+    if (checkWin() == -1) {
+        if (!checkTurn(current, i, j)) {
+            return -3;
+        }
+        if (current == WHITE) {
+            current = BLACK;
+        } else {
+            current = WHITE;
+        }
+        if (!hasTurn(current)) {
+            if (current == WHITE) {
+                current = BLACK;
+            } else {
+                current = WHITE;
+            }
+        }
+    }
+    return checkWin();
+}
+
+void Othello::reset() {
+    for (int i = 0; i < size; i++) {
+        this->grid[i] = new int[size];
+        for (int j = 0; j < size; j++)
+            this->grid[i][j] = OPEN;
+    }
+    int startIndex = (this->size - 1) / 2;
+    this->grid[startIndex][startIndex + 1] = BLACK;
+    this->grid[startIndex][startIndex] = WHITE;
+    this->grid[startIndex + 1][startIndex] = BLACK;
+    this->grid[startIndex + 1][startIndex + 1] = WHITE;
+    this->numWhite = 2;
+    this->numBlack = 2;
+    this->current = BLACK;
 }
