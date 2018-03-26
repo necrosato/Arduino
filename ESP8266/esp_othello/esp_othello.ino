@@ -208,12 +208,15 @@ void setupWiFi()
   Serial.print("This device's MAC address is: ");
   Serial.println(WiFi.macAddress());
 
+  //WiFi.mode(WIFI_AP_STA);
+  WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(ip, gateway, subnet);
   WiFi.softAP(AP_NAME, WiFiAPPSK, 6, 0);
   Serial.print("This AP's IP address is: ");
   Serial.println(WiFi.softAPIP());  
 
     /*
+  //WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
   int linenum = 10, attempt = 1;
