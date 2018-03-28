@@ -1,18 +1,24 @@
 #include <ESP8266WiFi.h>
-
+//#include "pins_arduino.h"
 //////////////////////
 // WiFi Definitions //
 //////////////////////
-const char WiFiAPPSK[] = "sparkfun";
+// this esp's ap credentials
+const char AP_NAME[] = "espnode";
+const char WiFiAPPSK[] = "security123";
+
+int wifiStatus;
+IPAddress ip(6,6,6,1);      // this node's soft ap ip address
+IPAddress gateway(6,6,6,1); // this node's soft ap gateway
+IPAddress subnet(255,255,255,0); // this node's soft ap subnet mask
+WiFiServer server(80);
 
 /////////////////////
 // Pin Definitions //
 /////////////////////
-const int LED_PIN = 5; // Thing's onboard, green LED
-const int ANALOG_PIN = A0; // The only analog pin on the Thing
-const int DIGITAL_PIN = 12; // Digital pin to be read
-
-WiFiServer server(80);
+const int LED_PIN = D4; // ESP's onboard, green LED
+const int ANALOG_PIN = A0; // The only analog pin on the ESP
+const int DIGITAL_PIN = D3; // Digital pin to be read
 
 void setup() 
 {
@@ -38,9 +44,9 @@ void loop()
   int val = -1; // We'll use 'val' to keep track of both the
                 // request type (read/set) and value if set.
   if (req.indexOf("/led/0") != -1)
-    val = 0; // Will write LED low
-  else if (req.indexOf("/led/1") != -1)
     val = 1; // Will write LED high
+  else if (req.indexOf("/led/1") != -1)
+    val = 0; // Will write LED low
   else if (req.indexOf("/read") != -1)
     val = -2; // Will print pin reads
   // Otherwise request will be invalid. We'll say as much in HTML
@@ -59,14 +65,14 @@ void loop()
   if (val >= 0)
   {
     s += "LED is now ";
-    s += (val)?"on":"off";
+    s += (val)?"off":"on";
   }
   else if (val == -2)
   { // If we're reading pins, print out those values:
     s += "Analog Pin = ";
     s += String(analogRead(ANALOG_PIN));
     s += "<br>"; // Go to the next line.
-    s += "Digital Pin 12 = ";
+    s += "Digital Pin 3 = ";
     s += String(digitalRead(DIGITAL_PIN));
   }
   else
@@ -86,32 +92,24 @@ void loop()
 
 void setupWiFi()
 {
+  Serial.print("This device's MAC address is: ");
+  Serial.println(WiFi.softAPmacAddress());
+
   WiFi.mode(WIFI_AP);
-
-  // Do a little work to get a unique-ish name. Append the
-  // last two bytes of the MAC (HEX'd) to "Thing-":
-  uint8_t mac[WL_MAC_ADDR_LENGTH];
-  WiFi.softAPmacAddress(mac);
-  String macID = String(mac[WL_MAC_ADDR_LENGTH - 2], HEX) +
-                 String(mac[WL_MAC_ADDR_LENGTH - 1], HEX);
-  macID.toUpperCase();
-  String AP_NameString = "ESP8266 Thing " + macID;
-
-  char AP_NameChar[AP_NameString.length() + 1];
-  memset(AP_NameChar, 0, AP_NameString.length() + 1);
-
-  for (int i=0; i<AP_NameString.length(); i++)
-    AP_NameChar[i] = AP_NameString.charAt(i);
-
-  WiFi.softAP(AP_NameChar, WiFiAPPSK);
+  WiFi.softAPConfig(ip, gateway, subnet);
+  WiFi.softAP(AP_NAME, WiFiAPPSK, 6, 0);
+  Serial.print("This AP's IP address is: ");
+  Serial.println(WiFi.softAPIP());  
 }
 
 void initHardware()
 {
   Serial.begin(115200);
+  Serial.println();
   pinMode(DIGITAL_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  pinMode(LED_PIN, OUTPUT); 
+  digitalWrite(LED_PIN, HIGH);//on Lolin ESP8266 v3 dev boards, the led is active low
+  //delay(1000);
   // Don't need to set ANALOG_PIN as input, 
   // that's all it can be.
 }
