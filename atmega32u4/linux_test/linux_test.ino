@@ -4,6 +4,22 @@
 
 #include "Keyboard.h"
 
+void load_delay() {
+    while(1) {
+        delay(1000);
+        Serial.println("Waiting for upload...");
+    }
+}
+
+  // pushbutton setup, check for new script
+
+  pinMode(8, INPUT);
+  delay(1000);
+  if(digitalRead(8) == HIGH) {
+    Serial.begin(115200);
+    load_delay();
+  }
+
 void typeKey(int key)
 {
   Keyboard.press(key);
@@ -16,6 +32,15 @@ void setup()
 {
   // Begining the Keyboard stream
   Keyboard.begin();
+
+  // pushbutton setup, check for new script
+
+  pinMode(8, INPUT);
+  delay(1000);
+  if(digitalRead(8) == HIGH) {
+    Serial.begin(115200);
+    load_delay();
+  }
 
   // Wait 500ms
   delay(500);
