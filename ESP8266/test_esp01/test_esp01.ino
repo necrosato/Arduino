@@ -1,8 +1,8 @@
+
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   pinMode(0, INPUT);     // Initialize the LED_BUILTIN pin as an output
   pinMode(2, INPUT);     // Initialize the LED_BUILTIN pin as an output
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   Serial.begin(115200);
   delay(1000);
   if (digitalRead(0) == HIGH) {
