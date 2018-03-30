@@ -19,9 +19,7 @@ WiFiServer server(80);
 /////////////////////
 // Pin Definitions //
 /////////////////////
-const int LED_PIN = D4; // ESP's onboard, green LED
-const int ANALOG_PIN = A0; // The only analog pin on the ESP
-const int DIGITAL_PIN = D3; // Digital pin to be read
+const int REED_PIN = 0; // ESP's onboard, green LED
 
 void setup() 
 {
@@ -44,19 +42,13 @@ void loop()
   client.flush();
 
   // Match the request
-  int val = -1; // We'll use 'val' to keep track of both the
-                // request type (read/set) and value if set.
-  if (req.indexOf("/led/0") != -1)
-    val = 1; // Will write LED high
-  else if (req.indexOf("/led/1") != -1)
-    val = 0; // Will write LED low
-  else if (req.indexOf("/read") != -1)
-    val = -2; // Will print pin reads
-  // Otherwise request will be invalid. We'll say as much in HTML
-
-  // Set GPIO5 according to the request
-  if (val >= 0)
-    digitalWrite(LED_PIN, val);
+  int val = -1; // We'll use 'val' to keep track of request
+  if (req.indexOf("/gpio0") != -1) {
+    val = 0;
+  }
+  if (req.indexOf("/gpio2") != -1) {
+    val = 2;
+  }
 
   client.flush();
 
@@ -65,22 +57,19 @@ void loop()
   s += "Content-Type: text/html\r\n\r\n";
   s += "<!DOCTYPE HTML>\r\n<html>\r\n";
   // If we're setting the LED, print out a message saying we did
-  if (val >= 0)
+  if (val == 0)
   {
-    s += "LED is now ";
-    s += (val)?"off":"on";
+    s += "GPIO 0 is now ";
+    s += (digitalRead(0) == LOW)?"LOW":"HIGH";
   }
-  else if (val == -2)
-  { // If we're reading pins, print out those values:
-    s += "Analog Pin = ";
-    s += String(analogRead(ANALOG_PIN));
-    s += "<br>"; // Go to the next line.
-    s += "Digital Pin 3 = ";
-    s += String(digitalRead(DIGITAL_PIN));
+  else if (val == 2)
+  {
+    s += "GPIO 2 is now ";
+    s += (digitalRead(2) == LOW)?"LOW":"HIGH";
   }
   else
   {
-    s += "Invalid Request.<br> Try /led/1, /led/0, or /read.";
+    s += "try /gpio0 or gpio2";
   }
   s += "</html>\n";
 
@@ -128,9 +117,7 @@ void initHardware()
 {
   Serial.begin(115200);
   Serial.println();
-  pinMode(DIGITAL_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT); 
-  digitalWrite(LED_PIN, HIGH);//on Lolin ESP8266 v3 dev boards, the led is active low
+  pinMode(REED_PIN, INPUT); 
   //delay(1000);
   // Don't need to set ANALOG_PIN as input, 
   // that's all it can be.
