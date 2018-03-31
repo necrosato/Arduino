@@ -4,11 +4,11 @@
 // WiFi Definitions //
 //////////////////////
 // this esp's ap credentials
-const char AP_NAME[] = "espnode";
+const char AP_NAME[] = "espmailbox";
 const char WiFiAPPSK[] = "security123";
 // other ap credentials
-const char *ssid = "";
-const char *password = "";
+const char *ssid = "moo";
+const char *password = "HCMOO_7120";
 
 int wifiStatus;
 IPAddress ip(6,6,6,1);                // this node's ap ip
@@ -21,6 +21,8 @@ WiFiServer server(80);
 /////////////////////
 const int REED_PIN = 0; // ESP's onboard, green LED
 
+int hasMail = 0;
+
 void setup() 
 {
   initHardware();
@@ -30,6 +32,7 @@ void setup()
 
 void loop() 
 {
+  checkMailbox();
   // Check if a client has connected
   WiFiClient client = server.available();
   if (!client) {
@@ -43,11 +46,11 @@ void loop()
 
   // Match the request
   int val = -1; // We'll use 'val' to keep track of request
-  if (req.indexOf("/gpio0") != -1) {
+  if (req.indexOf("/hasmail") != -1) {
     val = 0;
   }
-  if (req.indexOf("/gpio2") != -1) {
-    val = 2;
+  if (req.indexOf("/getmail") != -1) {
+    val = 1;
   }
 
   client.flush();
@@ -59,17 +62,18 @@ void loop()
   // If we're setting the LED, print out a message saying we did
   if (val == 0)
   {
-    s += "GPIO 0 is now ";
-    s += (digitalRead(0) == LOW)?"LOW":"HIGH";
+    s += "You ";
+    s += (hasMail == 0)?"do not have ":"have ";
+    s += "mail";
   }
-  else if (val == 2)
+  else if (val == 1)
   {
-    s += "GPIO 2 is now ";
-    s += (digitalRead(2) == LOW)?"LOW":"HIGH";
+    hasMail = 0;
+    s += "Getting the mail ";
   }
   else
   {
-    s += "try /gpio0 or gpio2";
+    s += "try /getmail or /hasmail";
   }
   s += "</html>\n";
 
@@ -118,7 +122,10 @@ void initHardware()
   Serial.begin(115200);
   Serial.println();
   pinMode(REED_PIN, INPUT); 
-  //delay(1000);
-  // Don't need to set ANALOG_PIN as input, 
-  // that's all it can be.
+}
+
+void checkMailbox() {
+    if (digitalRead(0) == HIGH) {
+        hasMail = 1;
+    }
 }

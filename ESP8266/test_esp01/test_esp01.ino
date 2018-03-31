@@ -19,7 +19,6 @@ WiFiServer server(80);
 /////////////////////
 // Pin Definitions //
 /////////////////////
-const int REED_PIN = 0; // ESP's onboard, green LED
 
 void setup() 
 {
@@ -117,8 +116,6 @@ void initHardware()
 {
   Serial.begin(115200);
   Serial.println();
-  pinMode(REED_PIN, INPUT); 
-  //delay(1000);
-  // Don't need to set ANALOG_PIN as input, 
-  // that's all it can be.
+  pinMode(0, INPUT); 
+  pinMode(2, INPUT); 
 }
