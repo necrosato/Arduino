@@ -1,17 +1,13 @@
 #include <ESP8266WiFi.h>
-//#include "pins_arduino.h"
 //////////////////////
 // WiFi Definitions //
 //////////////////////
-// this esp's ap credentials
-const char AP_NAME[] = "espmailbox";
-const char WiFiAPPSK[] = "security123";
-// other ap credentials
-const char *ssid = "moo";
-const char *password = "HCMOO_7120";
+// bridge ap credentials
+const char *ssid = "espmailbox";
+const char *password = "security123";
 
 int wifiStatus;
-IPAddress ip(6,6,6,1);                // this node's ap ip
+IPAddress ip(6,6,6,2);                // this node's ap ip
 IPAddress gateway(6,6,6,1);           // this node's ap default router
 IPAddress subnet(255,255,255,0);    // subnet mask, this node's ap subnet addres: 6.6.6.0, broadcast: 6.6.6.255
 WiFiServer server(80); 
@@ -91,13 +87,9 @@ void setupWiFi()
   Serial.print("This device's MAC address is: ");
   Serial.println(WiFi.macAddress());
 
-  WiFi.softAPConfig(ip, gateway, subnet);
-  WiFi.softAP(AP_NAME, WiFiAPPSK, 6, 1);
-  Serial.print("This AP's IP address is: ");
-  Serial.println(WiFi.softAPIP());  
-
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  //WiFi.config(sta_ip, sta_gateway, subnet);
+  WiFi.config(ip, gateway, subnet);
 
   int linenum = 10, attempt = 1;
   while (WiFi.status() != WL_CONNECTED) {
@@ -121,6 +113,7 @@ void initHardware()
 {
   Serial.begin(115200);
   Serial.println();
+  Serial.setDebugOutput(true);
   pinMode(REED_PIN, INPUT); 
 }
 
