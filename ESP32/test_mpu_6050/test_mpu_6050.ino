@@ -19,16 +19,11 @@
 MPU6050 mpu;
 //MPU6050 mpu(0x69); // <-- use for AD0 high
 
-/* =========================================================================
-   NOTE: In addition to connection 3.3v, GND, SDA, and SCL, this sketch
-   depends on the MPU-6050's INT pin being connected to the Arduino's
-   external interrupt #0 pin. On the Arduino Uno and Mega 2560, this is
-   digital I/O pin 2.
- * ========================================================================= */
-
 #ifndef LED_PIN
 #define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
 #endif
+#define INT_PIN 12 // GPIO 12 on ESP32
+// default sda is 21 and sdl is 22 on esp 32
 bool blinkState = false;
 
 // MPU control/status vars
@@ -111,7 +106,7 @@ void setup() {
 
         // enable Arduino interrupt detection
         Serial.println(F("Enabling interrupt detection (Arduino external interrupt 0)..."));
-        attachInterrupt(0, dmpDataReady, RISING);
+        attachInterrupt(digitalPinToInterrupt(INT_PIN), dmpDataReady, RISING);
         mpuIntStatus = mpu.getIntStatus();
 
         // set our DMP Ready flag so the main loop() function knows it's okay to use it
