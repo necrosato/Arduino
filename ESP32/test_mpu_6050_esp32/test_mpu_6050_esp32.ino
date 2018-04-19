@@ -1,6 +1,7 @@
 
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
+#define ESP32MPU
 #include "I2Cdev.h"
 
 #include "MPU6050_6Axis_MotionApps20.h"
@@ -23,7 +24,7 @@ MPU6050 mpu;
 #define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
 #endif
 #define INT_PIN 12 // GPIO 12 on ESP32
-// default sda is 21 and sdl is 22 on esp 32
+// default sda is 21 and scl is 22 on esp 32
 bool blinkState = false;
 
 // MPU control/status vars
@@ -183,14 +184,14 @@ void loop() {
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
         Serial.print("ypr\t");
-        //Serial.print(ypr[0] * 180/M_PI);
-        Serial.print(map(ypr[0] * 180/M_PI, -180, 180, 0, 127));
+        Serial.print(ypr[0] * 180/M_PI);
+        //Serial.print(map(ypr[0] * 180/M_PI, -180, 180, 0, 127));
         Serial.print("\t");
-        //Serial.print(ypr[1] * 180/M_PI);
-        Serial.print(map(ypr[1] * 180/M_PI, -180, 180, 0, 127));
+        Serial.print(ypr[1] * 180/M_PI);
+        //Serial.print(map(ypr[1] * 180/M_PI, -180, 180, 0, 127));
         Serial.print("\t");
-        //Serial.println(ypr[2] * 180/M_PI);
-        Serial.println(map(ypr[2] * 180/M_PI, -180, 180, 0, 127));
+        Serial.println(ypr[2] * 180/M_PI);
+        //Serial.println(map(ypr[2] * 180/M_PI, -180, 180, 0, 127));
 
         // blink LED to indicate activity
         blinkState = !blinkState;
